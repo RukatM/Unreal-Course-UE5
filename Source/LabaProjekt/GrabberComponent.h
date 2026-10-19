@@ -4,12 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "GrabberComponent.generated.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputAction.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 
+#include "GrabberComponent.generated.h"
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class LABAPROJEKT_API UGrabberComponent : public UActorComponent
-{
+{ 
 	GENERATED_BODY()
 
 public:	
@@ -24,5 +27,15 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+protected:
+	void Grab();
+
+	UPROPERTY(EditAnywhere)
+	UInputAction* GrabAction = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	float GrabRange = 200.0f;
+
+	UPhysicsHandleComponent* PhysicsHandle = nullptr;
 		
 };

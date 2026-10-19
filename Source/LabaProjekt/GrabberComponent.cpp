@@ -2,6 +2,7 @@
 
 
 #include "GrabberComponent.h"
+#include "EnhancedInputComponent.h"
 
 // Sets default values for this component's properties
 UGrabberComponent::UGrabberComponent()
@@ -19,8 +20,22 @@ void UGrabberComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
+	UE_LOG(LogTemp, Warning, TEXT("Masz Grabbera"));
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+
+	if (GrabAction && PC) {
+		if (UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(PC->InputComponent))
+		{
+			InputComponent->BindAction(GrabAction, ETriggerEvent::Started, this, &UGrabberComponent::Grab);
+		}
+	}
+
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+	if (!PhysicsHandle)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Missing Physics handle component"));
+	}
+
 }
 
 
@@ -29,6 +44,50 @@ void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (PhysicsHandle && PhysicsHandle->GetGrabbedComponent())
+	{
+		FVector Start;
+		FVector End;
+		FRotator CameraRotation;
+
+		GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(Start, CameraRotation);
+		End = Start + CameraRotation.Vector() * GrabRange;
+		
+		PhysicsHandle->SetTargetLocationAndRotation(End, CameraRotation);
+	}
+
 	// ...
+}
+
+void UGrabberComponent::Grab() 
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab"));
+
+	if (PhysicsHandle && PhysicsHandle->GetGrabbedComponent())
+	{
+		PhysicsHandle->ReleaseComponent();
+		return;
+	}
+	//find object
+	FVector Start;
+	FVector End;
+	FRotator CameraRotation;
+
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(Start, CameraRotation);
+	End = Start + CameraRotation.Vector() * GrabRange;
+
+	FHitResult Result;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(GetOwner());
+	GetWorld()->LineTraceSingleByChannel(Result, Start, End, ECollisionChannel::ECC_PhysicsBody,Params);
+	
+	//Debug line
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 5.0f, 0, 5.0f);
+	
+	if (UPrimitiveComponent* Comp = Result.GetComponent())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Grabing object: %s"), *Comp->GetName());
+		PhysicsHandle->GrabComponentAtLocationWithRotation(Comp, FName(), Result.Location, CameraRotation);
+	}
 }
 
