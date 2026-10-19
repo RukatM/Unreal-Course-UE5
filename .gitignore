@@ -1,18 +1,56 @@
-Binaries
-DerivedDataCache
-Intermediate
-Saved
-Content/Fab
-Content/OldWest
-Content/OldFurniturePack_01
-Content/BuildingCollection
-.vscode
-.vs
-*.VC.db
-*.opensdf
-*.opendb
-*.sdf
+# Unreal Engine GitIgnore
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled static libraries
+*.a
+*.lib
+*.la
+
+# Visual Studio / IDE user-specific files
+.vs/
+.idea/
+.vscode/
 *.sln
 *.suo
-*.xcodeproj
-*.xcworkspace
+*.user
+*.opendb
+*.VC.db
+*.code-workspace
+
+# Unreal Engine generated directories
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+Build/Android/
+Build/IOS/
+Build/Linux/
+Build/Mac/
+Build/Windows/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
