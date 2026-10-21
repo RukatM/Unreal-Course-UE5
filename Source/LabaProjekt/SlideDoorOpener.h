@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TimelineComponent.h"
 #include "SlideDoorOpener.generated.h"
@@ -33,18 +34,32 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Slide Door")
-	EDoorType DoorType = EDoorType::Left;
-
-	UPROPERTY(EditAnywhere, Category = "Slide Door")
-	float DetectionRange = 2000.f;
+	UFUNCTION(BlueprintCallable, Category = "Door")
+		void InitializeDoor(UStaticMeshComponent* Left, UStaticMeshComponent* Right, UBoxComponent* BoxCollision);
 
 	UPROPERTY(EditAnywhere, Category = "Slide Door")
 	float AbsOffset = 380.f;
 
 private:
-	void Open();
-	bool IsOpen = false;
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> m_Left = nullptr;
 
-		
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> m_Right = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<UBoxComponent> m_BoxCollision = nullptr;
+
+	UFUNCTION()
+	void OverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	FVector LeftStartPosition = FVector::Zero();
+	FVector RightStartPosition = FVector::Zero();
+
+	void Open();
+	void Close();
+	bool IsOpen = false;
 };

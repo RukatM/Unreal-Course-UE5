@@ -34,25 +34,64 @@ void USlideDoorOpener::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	if (PlayerPawn && Owner)
 	{
-		FVector DirectionToPlayer = PlayerPawn->GetActorLocation() - Owner->GetActorLocation();
+		//FVector DirectionToPlayer = PlayerPawn->GetActorLocation() - Owner->GetActorLocation();
 
-		if (DirectionToPlayer.SquaredLength() < FMath::Square(DetectionRange))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Detected"));
-			if(!IsOpen) Open();
-		}
+		//if (DirectionToPlayer.SquaredLength() < FMath::Square(DetectionRange))
+		//{
+		//	UE_LOG(LogTemp, Warning, TEXT("Detected"));
+		//	if(!IsOpen) Open();
+		//}
 	}
 
 	// ...
 
 }
 
+void USlideDoorOpener::InitializeDoor(UStaticMeshComponent* Left, UStaticMeshComponent* Right, UBoxComponent* BoxCollision)
+{
+	if (Left && Right && BoxCollision)
+	{
+		m_Left = Left;
+		m_Right = Right;
+		m_BoxCollision = BoxCollision;
+
+		LeftStartPosition = m_Left->GetComponentLocation();
+		RightStartPosition = m_Right->GetComponentLocation();
+
+		m_BoxCollision->OnComponentBeginOverlap.AddDynamic(this,&USlideDoorOpener::OverlapBegin);
+		m_BoxCollision->OnComponentEndOverlap.AddDynamic(this,&USlideDoorOpener::OverlapEnd);
+		UE_LOG(LogTemp, Warning, TEXT("Left Position %s"),*LeftStartPosition.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Right Position %s"),*RightStartPosition.ToString());
+	}
+	else 
+		UE_LOG(LogTemp, Warning, TEXT("Attatch Static mesh to func"));
+}
+
 void USlideDoorOpener::Open()
 {
-	FVector Offset(0.f,0.f,0.f);
-	if (DoorType == EDoorType::Left) Offset.X = AbsOffset;
-	else Offset.X = -1 * AbsOffset;
-	FVector TargetLocation = GetOwner()->GetActorLocation() + Offset;
-	GetOwner()->SetActorLocation(TargetLocation, false);
+	UE_LOG(LogTemp, Warning, TEXT("Opening"));
+	IsOpen = true;
+}
+
+void USlideDoorOpener::Close()
+{
+	UE_LOG(LogTemp, Warning, TEXT("CLoseing"));
+	IsOpen = false;
+}
+
+void USlideDoorOpener::OverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == UGameplayStatics::GetPlayerPawn(this, 0) && !IsOpen)
+	{
+		Open();
+	}
+}
+
+void USlideDoorOpener::OverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor == UGameplayStatics::GetPlayerPawn(this, 0) && IsOpen)
+	{
+		Close();
+	}
 }
 
