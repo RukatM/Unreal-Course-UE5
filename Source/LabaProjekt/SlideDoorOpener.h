@@ -9,12 +9,7 @@
 #include "Components/TimelineComponent.h"
 #include "SlideDoorOpener.generated.h"
 
-UENUM(BlueprintType)
-enum class EDoorType : uint8
-{
-	Left        UMETA(DisplayName = "Left Door"),
-	Right     UMETA(DisplayName = "Right Door")
-};
+class UCurveFloat;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class LABAPROJEKT_API USlideDoorOpener : public UActorComponent
@@ -40,6 +35,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Slide Door")
 	float AbsOffset = 380.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTimelineComponent* TimelineComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UCurveFloat* OpeningCurve = nullptr;
+
 private:
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> m_Left = nullptr;
@@ -55,6 +56,8 @@ private:
 
 	UFUNCTION()
 	void OverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	FTimeline OpeningTimeline;
 
 	FVector LeftStartPosition = FVector::Zero();
 	FVector RightStartPosition = FVector::Zero();

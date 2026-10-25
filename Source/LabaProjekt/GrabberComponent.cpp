@@ -66,6 +66,7 @@ void UGrabberComponent::Grab()
 	if (PhysicsHandle && PhysicsHandle->GetGrabbedComponent())
 	{
 		PhysicsHandle->ReleaseComponent();
+		GrabbedItemUpdated.Broadcast(nullptr);
 		return;
 	}
 	//find object
@@ -88,6 +89,10 @@ void UGrabberComponent::Grab()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Grabing object: %s"), *Comp->GetName());
 		PhysicsHandle->GrabComponentAtLocationWithRotation(Comp, FName(), Result.Location, CameraRotation);
+		if (PhysicsHandle->GetGrabbedComponent())
+		{
+			GrabbedItemUpdated.Broadcast(Comp->GetOwner());
+		}
 	}
 }
 

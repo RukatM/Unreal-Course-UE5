@@ -10,6 +10,8 @@
 
 #include "GrabberComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGrabbedItemUpdated, AActor*, GrabbedItem);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class LABAPROJEKT_API UGrabberComponent : public UActorComponent
 { 
@@ -29,6 +31,9 @@ public:
 
 protected:
 	void Grab();
+
+	UPROPERTY(BlueprintAssignable)
+	FGrabbedItemUpdated GrabbedItemUpdated;
 
 	UPROPERTY(EditAnywhere)
 	UInputAction* GrabAction = nullptr;
