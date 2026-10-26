@@ -7,9 +7,10 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TimelineComponent.h"
+#include "Curves/CurveFloat.h"
 #include "SlideDoorOpener.generated.h"
 
-class UCurveFloat;
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class LABAPROJEKT_API USlideDoorOpener : public UActorComponent
@@ -30,16 +31,16 @@ public:
 
 protected:
 	UFUNCTION(BlueprintCallable, Category = "Door")
-		void InitializeDoor(UStaticMeshComponent* Left, UStaticMeshComponent* Right, UBoxComponent* BoxCollision);
+	void InitializeDoor(UStaticMeshComponent* Left, UStaticMeshComponent* Right, UBoxComponent* BoxCollision);
 
-	UPROPERTY(EditAnywhere, Category = "Slide Door")
-	float AbsOffset = 380.f;
+	UPROPERTY(EditAnywhere, Category = "Door")
+	float SlideDistance = 380.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UTimelineComponent* TimelineComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UCurveFloat* OpeningCurve = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Door")
+	UCurveFloat* DoorCurve = nullptr;
+	
+	UPROPERTY(EditAnywhere, Category = "Door")
+	USoundBase* DoorSound = nullptr;
 
 private:
 	UPROPERTY()
@@ -56,13 +57,19 @@ private:
 
 	UFUNCTION()
 	void OverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	FTimeline OpeningTimeline;
-
+	
+	UPROPERTY()
+	UTimelineComponent* DoorTimeline = nullptr;
+	
+	UFUNCTION()
+	void HandleTimelineProgress(float Value);
+	
 	FVector LeftStartPosition = FVector::Zero();
 	FVector RightStartPosition = FVector::Zero();
-
+	
+	void SetUpTimeline();
 	void Open();
 	void Close();
+	void PlaySoundEffect();
 	bool IsOpen = false;
 };

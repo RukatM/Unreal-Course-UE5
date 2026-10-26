@@ -9,6 +9,7 @@ USlideDoorOpener::USlideDoorOpener()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
+	DoorTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DoorTimeline"));
 
 	// ...
 }
@@ -18,7 +19,11 @@ USlideDoorOpener::USlideDoorOpener()
 void USlideDoorOpener::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	if (DoorTimeline && DoorCurve)
+	{
+		SetUpTimeline();
+	}
 	// ...
 	
 }
@@ -27,24 +32,15 @@ void USlideDoorOpener::BeginPlay()
 // Called every frame
 void USlideDoorOpener::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	AActor* Owner = GetOwner();
-
-	if (PlayerPawn && Owner)
-	{
-		//FVector DirectionToPlayer = PlayerPawn->GetActorLocation() - Owner->GetActorLocation();
-
-		//if (DirectionToPlayer.SquaredLength() < FMath::Square(DetectionRange))
-		//{
-		//	UE_LOG(LogTemp, Warning, TEXT("Detected"));
-		//	if(!IsOpen) Open();
-		//}
-	}
-
 	// ...
 
+}
+
+void USlideDoorOpener::SetUpTimeline()
+{
+	FOnTimelineFloat SlideProgress;
+	SlideProgress.BindUFunction(this,FName("HandleTimelineProgress"));
+	DoorTimeline->AddInterpFloat(DoorCurve,SlideProgress);
 }
 
 void USlideDoorOpener::InitializeDoor(UStaticMeshComponent* Left, UStaticMeshComponent* Right, UBoxComponent* BoxCollision)
@@ -71,12 +67,22 @@ void USlideDoorOpener::Open()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Opening"));
 	IsOpen = true;
+	DoorTimeline->Play();
+	if (DoorSound)
+	{
+		PlaySoundEffect();
+	}
 }
 
 void USlideDoorOpener::Close()
 {
-	UE_LOG(LogTemp, Warning, TEXT("CLoseing"));
+	UE_LOG(LogTemp, Warning, TEXT("CLosing"));
 	IsOpen = false;
+	DoorTimeline->Reverse();
+	if (DoorSound)
+	{
+		PlaySoundEffect();
+	}
 }
 
 void USlideDoorOpener::OverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -93,5 +99,25 @@ void USlideDoorOpener::OverlapEnd(UPrimitiveComponent* OverlappedComponent, AAct
 	{
 		Close();
 	}
+}
+
+void USlideDoorOpener::HandleTimelineProgress(const float Value)
+{
+	const FVector LSlide = FVector(-SlideDistance,0,0);
+	const FVector RSlide = FVector(SlideDistance,0,0);
+	
+	m_Left->SetWorldLocation(FMath::Lerp(LeftStartPosition,LeftStartPosition + LSlide,Value));
+	m_Right->SetWorldLocation(FMath::Lerp(RightStartPosition,RightStartPosition + RSlide,Value));
+}
+
+void USlideDoorOpener::PlaySoundEffect()
+{
+	UGameplayStatics::PlaySoundAtLocation(
+			this->GetWorld(),
+			DoorSound,
+			GetOwner()->GetActorLocation(),
+			1.0f,
+			1.0f
+		);
 }
 
